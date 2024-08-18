@@ -49,11 +49,15 @@ while True:
             cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
             keypoints_normalized = poseResults[0].keypoints.xyn.cpu().numpy()[0]
             print(keypoints_normalized)
+            for person in keypoints_normalized:
+                for x, y, conf in person:
+                    if conf > 0.5:  # Only draw keypoints with high confidence
+                        cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])), 3, (0, 255, 0), -1)
             annotator.box_label(b, "Tite ni Bennett")
             
         cv2.putText(frame, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                     1.0, (0, 0, 0), 4, cv2.LINE_AA)
-        cv2.imshow('Annotated Frame', frame)
+        cv2.imshow('Annotated Frame', image)
     
     if cv2.waitKey(10) == 27:
         break
