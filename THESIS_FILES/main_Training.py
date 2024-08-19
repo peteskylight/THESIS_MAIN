@@ -51,6 +51,8 @@ def folderSetUp():
             except:
                 pass
     
+def collectKeypoints():
+    
 
 def main():
 
