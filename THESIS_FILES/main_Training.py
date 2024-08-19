@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import argparse
+import os
 
 import matplotlib.pyplot as plt
 import matplotlib.image as img
@@ -29,9 +30,31 @@ def drawLandmarks(image, x, y):
                                    3, (0, 255, 0), -1)
     return image
 
+def folderSetUp():
+    # Path for exported data, numpy arrays
+    DATA_PATH = os.path.join('./THESIS_MAIN', 'THESIS_FILES', 'HumanPose_DATA') 
+
+    # Actions that we try to detect
+    actions = np.array(['Looking Right', 'Looking Left', 'Looking Up'])
+
+    # Thirty videos worth of data
+    no_sequences = 30
+
+    # Videos are going to be 30 frames in length
+    sequence_length = 30
+    
+    #========> ACTUAL MAKING DIRECTORIES <========
+    for action in actions: 
+        for sequence in range(no_sequences+1):
+            try: 
+                os.makedirs(os.path.join(DATA_PATH, action, str(sequence)))
+            except:
+                pass
+    
+
 def main():
 
-    cameraInput = "dancers.jpg"
+    cameraInput = 0
 
     args = parse_arguments()
     frameWidth, frameHeight = args.webcam_resolution
@@ -86,13 +109,15 @@ def main():
 
                 try:
                     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
+                    
                     flattenedKeypoints = keypoints_normalized.flatten()
-                    print(flattenedKeypoints)
+                    flattenedList = flattenedKeypoints.tolist()
+                    
+                    print(flattenedList)
                     for keypointsResults in keypoints_normalized:
                         x = keypointsResults[0]
                         y = keypointsResults[1]
-                        print("X: {} | Y: {}".format(x,y))
-
+                        #print("X: {} | Y: {}".format(x,y))
                         drawLandmarks(image, x, y)
 
                         
@@ -108,10 +133,10 @@ def main():
                 if k == 114: #Letter "r" for recording
                     cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
                                         1.0, (0,0,0), 4, cv2.LINE_AA)
-            cv2.imshow("Window", image)
+        cv2.imshow("Window", image)
 
         if k == 27:
             break 
 
 if __name__ == "__main__":
-    main()
+    folderSetUp()
