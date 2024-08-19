@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import argparse
 import os
+import time
 
 import matplotlib.pyplot as plt
 import matplotlib.image as img
@@ -31,44 +32,27 @@ def parse_arguments() -> argparse.Namespace: # For Camera
     args = parser.parse_args()
     return args
 
-def drawLandmarks(image, x, y, poseResults):
+def drawLandmarks(image, poseResults):
     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
                     
     flattenedKeypoints = keypoints_normalized.flatten()
     flattenedList = flattenedKeypoints.tolist()
-    
-    print(flattenedList)
+    #print(flattenedList)
     for keypointsResults in keypoints_normalized:
         x = keypointsResults[0]
         y = keypointsResults[1]
         #print("X: {} | Y: {}".format(x,y))
-    cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
+        cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
                                    3, (0, 255, 0), -1)
-    return image
+    drawBoundingBox(poseResults, image)
 
-def setGlobal():
-    global DATA_PATH, start_folder
-    global actionsList
-    global no_sequences
-    global sequence_length
+    return flattenedList
 
-def folderSetUp():
-    # Path for exported data, numpy arrays
-    DATA_PATH = os.path.join('./THESIS_MAIN', 'THESIS_FILES', 'HumanPose_DATA') 
 
-    # Actions that we try to detect
-    actionsList = np.array(['Looking Right', 'Looking Left', 'Looking Up'])
-
-    # Thirty videos worth of data
-    no_sequences = 30
-
-    # Videos are going to be 30 frames in length
-    sequence_length = 30
-    start_folder = 30
-    
+def folderSetUp(DATA_PATH, actionsList, noOfSequences):
     #========> ACTUAL MAKING DIRECTORIES <========
     for action in actionsList: 
-        for sequence in range(no_sequences+1):
+        for sequence in range(1, noOfSequences+1):
             try: 
                 os.makedirs(os.path.join(DATA_PATH, action, str(sequence)))
             except:
@@ -84,97 +68,109 @@ def detectPose(frame, confidenceRate):
     # Recolor image back to BGR for rendering
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
     return image, poseResults
 
-def drawBoundingBox(poseResults, frame, fps):
+def drawBoundingBox(poseResults, frame):
     for result in poseResults:
         annotator = Annotator(frame)
         boxes = result.boxes
-
         # SHOW FPS
-        cv2.putText(frame, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
-                    1.0, (255,255,255), 4, cv2.LINE_AA) 
         for box in boxes:
             b = box.xyxy[0]
             c = box.cls
+            annotator.box_label(b, "Human Subject")
 
-def loggingKeypoints(cap, frame, mode, fps, poseResults):
+def loggingKeypoints(camera, frame, mode, poseResults,
+                     DATA_PATH, image, actionsList, startFolder,
+                     noOfSequences, sequenceLength, getFPS):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
     if mode == 0:
         for result in poseResults:
             annotator = Annotator(frame)
             boxes = result.boxes
-
-            # SHOW FPS
-            cv2.putText(frame, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0, (255,255,255), 4, cv2.LINE_AA) 
             for box in boxes:
                 b = box.xyxy[0]
                 c = box.cls
-
+                # SHOW FPS
+                
                 try:
-                    drawLandmarks(frame, x, y, poseResults)
+                    drawLandmarks(image, poseResults)
                 except:
-                    print("NO PERSON DETECTED!")
-                    continue
+                     print("NO PERSON DETECTED!")
+                     continue
                 annotator.box_label(b, "Human Subject")
 
     if mode == 1:
+        # camera.release()
+        # cv2.destroyAllWindows()
+
         # NEW LOOP
-        # Loop through actions
         for action in actionsList:
             # Loop through sequences aka videos
-            for sequence in range(start_folder, start_folder+no_sequences):
+            for sequence in range(1, startFolder+1):
                 # Loop through video length aka sequence length
-                for frame_num in range(sequence_length):
+                for frame_num in range(1, sequenceLength+1):
                     # Read feed
-                    ret, frame = cap.read()
+                    
+                    ret, frame = camera.read()
+                    img, results = detectPose(frame, 0.75)
 
-                    keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
-                    
-                    flattenedKeypoints = keypoints_normalized.flatten()
-                    flattenedList = flattenedKeypoints.tolist()
-                    
-                    print(flattenedList)
-                    for keypointsResults in keypoints_normalized:
-                        x = keypointsResults[0]
-                        y = keypointsResults[1]
-                        #print("X: {} | Y: {}".format(x,y))
-                        drawLandmarks(frame, x, y)
+                    flattenedList = drawLandmarks(img, results)
 
                     # NEW Apply wait logic
-                    if frame_num == 0: 
-                        cv2.putText(frame, 'STARTING COLLECTION', (120,200), 
+                    if frame_num == 1: 
+                        cv2.putText(img, 'STARTING COLLECTION', (150,240), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 6, cv2.LINE_AA)
+                        cv2.putText(img, '{} : # {}'.format(action, sequence), (110,280), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
-                        cv2.putText(frame, 'Collecting frames for {} Video Number {}'.format(action, sequence), (15,12), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
                         # Show to screen
-                        cv2.imshow('OpenCV Feed', frame)
-                        cv2.waitKey(500)
-                    else: 
-                        cv2.putText(frame, 'Collecting frames for {} Video Number {}'.format(action, sequence), (15,12), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                        # Show to screen
-                        cv2.imshow('OpenCV Feed', frame)
-                    
+                        displayWithInfo(img, mode, camera, getFPS, action, sequence)
+                        start_time = time.time()
+                        while ((time.time() - start_time) < 2):
+                            # Continue reading frames to avoid blocking
+                            ret, frame = camera.read()
+                            mode = 2
+                            displayWithInfo(frame, mode, camera, getFPS, (time.time()-start_time), sequence)
+                        mode = 1
+                    else:
+                        displayWithInfo(img, mode, camera, getFPS, action, sequence)
+                        
                     # NEW Export keypoints
                     npy_path = os.path.join(DATA_PATH, action, str(sequence), str(frame_num))
                     np.save(npy_path, flattenedList)
 
+                    
                     # Break gracefully
                     if cv2.waitKey(10) & 0xFF == ord('q'):
                         break
-
+    return image
 
 def main():
 
+    # Path for exported data, numpy arrays
+    DATA_PATH = os.path.join('THESIS_FILES', 'HumanPose_DATA') 
+
+    # Actions that we try to detect
+    actionsList = np.array(['Looking Left', 'Looking Right', 'Looking Up'])
+
+    # Thirty videos worth of data
+    noOfSequences = 30
+
+    # Videos are going to be 30 frames in length
+    sequenceLength = 30
+    startFolder = 30
+
+    folderSetUp(DATA_PATH, actionsList, noOfSequences)
+
     cameraInput = 0
+    getFPS = CvFpsCalc(buffer_len=10)
 
     args = parse_arguments()
     frameWidth, frameHeight = args.webcam_resolution
     camera = cv2.VideoCapture(cameraInput)  # Use the specified camera
-    # camera.set(cv2.CAP_PROP_FRAME_WIDTH, frameWidth)
-    # camera.set(cv2.CAP_PROP_FRAME_HEIGHT, frameHeight)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, frameWidth)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, frameHeight)
 
 
     #=====================================================> UNCOMMENT THIS FOR GPU <=====
@@ -184,41 +180,36 @@ def main():
 
     humanDetectorModel = YOLO('yolov8n.pt') #COMMENT THIS AND (V)THIS(V) when GPU
     humanPoseDetectorModel = YOLO('yolov8n-pose.pt')# <==========THIS
-
+    #=> ^^^COMMENT THESE TWO FOR GPU ^^^ <=
+    #====================================================================================
     humanDetectorModel.classes = [0] #Limit to human detection
     humanPoseDetectorModel.classes = [0] #Limit to juman detection
 
-    getFPS = CvFpsCalc(buffer_len=10)
-
-
     mode = 0
 
-
     while True:
+        key = cv2.waitKey(10)
+        mode = selectMode(key, mode)
+    
         # Read a frame from the camera
-        fps = getFPS.get()
+        
         ret, frame = camera.read()
+
         if not ret:
             break
 
-        key = cv2.waitKey(10)
-        mode = selectMode(key, mode)
-
         image, poseResults = detectPose(frame, 0.75)
 
+        image = loggingKeypoints(camera, frame, mode, poseResults,
+                     DATA_PATH, image, actionsList, startFolder,
+                     noOfSequences, sequenceLength, getFPS)
+
+        displayWithInfo(image, mode, camera, getFPS, action=0, sequence=0)
         
 
-                #Key Pressing
-                
-                #if key == 102: #Letter "f" for frames
-                
-                if key == 114: #Letter "r" for recording
-                    cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
-                                        1.0, (0,0,0), 4, cv2.LINE_AA)
-        cv2.imshow("Window", image)
-
-        if key == 27:
-            break 
+    camera.release()
+    cv2.destroyAllWindows()
+        
 
 def selectMode(key, mode):
     if key == 110:  # "n" for NORMAL MODE
@@ -227,5 +218,33 @@ def selectMode(key, mode):
         mode = 1
     return mode
 
+def displayWithInfo(image, mode, camera, getFPS, action, sequence):
+    start_time = time.time()
+
+    if cv2.waitKey(10)== 27:
+        camera.release()
+        cv2.destroyAllWindows() 
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
+
+    fps = getFPS.get()
+
+    cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0, (255,255,255), 4, cv2.LINE_AA)
+    if mode == 0:
+        cv2.putText(image, "Mode: Normal (0)", (10, 70),
+                    font, 1.0, (255,255,255), 4, cv2.LINE_AA)
+    if mode == 1:
+        cv2.putText(image, "Mode: Recording (1)", (10, 70),
+                    font, 1.0, (255,255,255), 4, cv2.LINE_AA)
+        cv2.putText(image, 'Collecting frames for {} Video Number {}'.format(action, sequence), (10,110), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+    if mode == 2:
+        cv2.putText(image, 'STARTING COLLECTION in {}'.format(action),
+                                        (150,240), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 6, cv2.LINE_AA)
+
+    cv2.imshow("Window Original", image)
+
 if __name__ == "__main__":
-    folderSetUp()
+    main()
