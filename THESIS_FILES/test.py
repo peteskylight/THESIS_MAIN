@@ -4,6 +4,8 @@ from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 from utils import CvFpsCalc  # FOR FPS
 
+#For checking purposes
+
 # Initialize models
 humanDetectorModel = YOLO('yolov8n.pt')
 humanPoseDetectorModel = YOLO('yolov8n-pose.pt')
