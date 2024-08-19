@@ -15,7 +15,7 @@ cameraInput = 0
 camera = cv2.VideoCapture(cameraInput)
 getFPS = CvFpsCalc(buffer_len=10)
 
-batch_size = 4  # Define your batch size
+batch_size = 1  # Define your batch size
 frames = []
 
 while True:
@@ -49,20 +49,26 @@ while True:
                     y = keypointsResults[1]
                     print("X: {} | Y: {}".format(x, y))
 
-                    cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])), 3, (0, 255, 0), -1)
+                    #cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])), 3, (0, 255, 0), -1)
 
-                annotator.box_label(b, "Human Subject")
-                if k == 102:  # Letter "f" for frames
-                    cv2.putText(image, "FPS: " + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                                1.0, (255, 255, 255), 4, cv2.LINE_AA)
-                if k == 114:  # Letter "r" for recording
-                    cv2.putText(image, "FPS: " + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                                1.0, (0, 0, 0), 4, cv2.LINE_AA)
+                #annotator.box_label(b, "Human Subject")
+    
+                
+                #---------NOTING FOR KEY PRESSING USING CV2.WAITKEY
+                # if k == 102:  # Letter "f" for frames
+                #     cv2.putText(image, "FPS: " + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                #                 1.0, (255, 255, 255), 4, cv2.LINE_AA)
+                # if k == 114:  # Letter "r" for recording
+                #     cv2.putText(image, "FPS: " + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                #                 1.0, (0, 0, 0), 4, cv2.LINE_AA)
 
+            
+            # cv2.putText(image, "FPS: " + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+            #                             1.0, (255, 255, 255), 4, cv2.LINE_AA)
             cv2.imshow("Window", image)
-
         frames = []  # Clear the batch
 
+    
     if cv2.waitKey(10) == 27:
         break
 

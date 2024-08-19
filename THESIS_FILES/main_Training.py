@@ -1,75 +1,117 @@
 import cv2
 import numpy as np
+import argparse
+
+import matplotlib.pyplot as plt
+import matplotlib.image as img
+
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
 from utils import CvFpsCalc #FOR FPS
 
-#import torch #=========================================================> GPU IMPORTANT <========
-#torch.cuda.set_device(0) 
-
-cameraInput = 0
+#import torch #========================================> GPU IMPORTANT <========
 
 
-#REPLACE MO NITO BOSS YUNG NASA BABA
-#humanDetectorModel = YOLO('yolov8n.pt', task='detect').to('cuda')
-#humanPoseDetectorModel = YOLO('yolov8n-pose.pt', task='detect').to('cuda')
+def parse_arguments() -> argparse.Namespace: # For Camera
+    parser=argparse.ArgumentParser(description="YOLOv8 Live")
+    parser.add_argument(
+        "--webcam-resolution",
+        default=[1280,720], #default must be 1280, 720
+        nargs=2,
+        type=int
+    )
+    args = parser.parse_args()
+    return args
 
-humanDetectorModel = YOLO('yolov8n.pt') #Icomment mo na lan to boss
-humanPoseDetectorModel = YOLO('yolov8n-pose.pt')# Pati ito
+def drawLandmarks(image, x, y):
+    cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
+                                   3, (0, 255, 0), -1)
+    return image
 
-humanDetectorModel.classes = [0] #Limit to human detection
-humanPoseDetectorModel.classes = [0] #Limit to juman detection
+def main():
 
-camera = cv2.VideoCapture(cameraInput)
+    cameraInput = "dancers.jpg"
 
-getFPS = CvFpsCalc(buffer_len=10)
+    args = parse_arguments()
+    frameWidth, frameHeight = args.webcam_resolution
+    camera = cv2.VideoCapture(cameraInput)  # Use the specified camera
+    # camera.set(cv2.CAP_PROP_FRAME_WIDTH, frameWidth)
+    # camera.set(cv2.CAP_PROP_FRAME_HEIGHT, frameHeight)
 
-while True:
-    # Read a frame from the camera
-    fps = getFPS.get()
-    ret, frame = camera.read()
-    if not ret:
-        break
-    # Recolor Feed from RGB to BGR
-    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    image.flags.writeable = False
-    
-    # Perform inference using the YOLO model
-    poseResults = humanPoseDetectorModel(frame, conf = 0.8) #Higher confidence but needs good lighting & low frame drop
 
-    # Recolor image back to BGR for rendering
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    
-    for result in poseResults:
-        annotator = Annotator(frame)
-        boxes = result.boxes
-        for box in boxes:
-            k = cv2.waitKey(10)
-            b = box.xyxy[0]
-            c = box.cls
-            cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
-            keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
+    #=====================================================> UNCOMMENT THIS FOR GPU <=====
+    #torch.cuda.set_device(0) 
+    #humanDetectorModel = YOLO('yolov8n.pt', task='detect').to('cuda')
+    #humanPoseDetectorModel = YOLO('yolov8n-pose.pt', task='detect').to('cuda')
 
-            for keypointsResults in keypoints_normalized:
-                x = keypointsResults[0]
-                y = keypointsResults[1]
-                print("X: {} | Y: {}".format(x,y))
+    humanDetectorModel = YOLO('yolov8n.pt') #COMMENT THIS AND (V)THIS(V) when GPU
+    humanPoseDetectorModel = YOLO('yolov8n-pose.pt')# <==========THIS
 
-                cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])), 3, (0, 255, 0), -1)
-                    
-            annotator.box_label(b, "Human Subject")
-            if k == 102: #Letter "f" for frames
-                cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
-                            1.0, (255,255,255), 4, cv2.LINE_AA) 
-            if k == 114: #Letter "r" for recording
-                cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
-                                    1.0, (0,0,0), 4, cv2.LINE_AA)
-            
-    cv2.imshow("Window", image)
+    humanDetectorModel.classes = [0] #Limit to human detection
+    humanPoseDetectorModel.classes = [0] #Limit to juman detection
 
-    
+    getFPS = CvFpsCalc(buffer_len=10)
+
+    while True:
+        # Read a frame from the camera
+        fps = getFPS.get()
+        ret, frame = camera.read()
+        if not ret:
+            break
+        # Recolor Feed from RGB to BGR
+        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        image.flags.writeable = False
+        
+        
+        #Higher confidence but needs good lighting & low frame drop
+        
+        poseResults = humanPoseDetectorModel(frame, conf = 0.75)
+        # Recolor image back to BGR for rendering
+        image.flags.writeable = True
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+        k = cv2.waitKey(10)
+
+        for result in poseResults:
+            annotator = Annotator(frame)
+            boxes = result.boxes
+
+            # SHOW FPS
+            cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0, (255,255,255), 4, cv2.LINE_AA) 
+            for box in boxes:
+                b = box.xyxy[0]
+                c = box.cls
+
+                try:
+                    keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
+                    flattenedKeypoints = keypoints_normalized.flatten()
+                    print(flattenedKeypoints)
+                    for keypointsResults in keypoints_normalized:
+                        x = keypointsResults[0]
+                        y = keypointsResults[1]
+                        print("X: {} | Y: {}".format(x,y))
+
+                        drawLandmarks(image, x, y)
+
+                        
+                except:
+                    print("NO PERSON DETECTED!")
+                    continue
+                annotator.box_label(b, "Human Subject")
+
+                #Key Pressing
                 
-    if cv2.waitKey(10) == 27:
-                break 
+                #if k == 102: #Letter "f" for frames
+                
+                if k == 114: #Letter "r" for recording
+                    cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
+                                        1.0, (0,0,0), 4, cv2.LINE_AA)
+            cv2.imshow("Window", image)
+
+        if k == 27:
+            break 
+
+if __name__ == "__main__":
+    main()
