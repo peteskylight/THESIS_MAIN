@@ -120,21 +120,17 @@ def loggingKeypoints(camera, frame, mode, poseResults,
 
                     # NEW Apply wait logic
                     if frame_num == 1: 
-                        cv2.putText(img, 'STARTING COLLECTION', (150,240), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 6, cv2.LINE_AA)
-                        cv2.putText(img, '{} : # {}'.format(action, sequence), (110,280), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
+                        
                         # Show to screen
-                        displayWithInfo(img, mode, camera, getFPS, action, sequence)
                         start_time = time.time()
                         while ((time.time() - start_time) < 2):
                             # Continue reading frames to avoid blocking
                             ret, frame = camera.read()
                             mode = 2
-                            displayWithInfo(frame, mode, camera, getFPS, (time.time()-start_time), sequence)
+                            displayWithInfo(frame, mode, camera, getFPS, action, sequence, (time.time() - start_time))
                         mode = 1
                     else:
-                        displayWithInfo(img, mode, camera, getFPS, action, sequence)
+                        displayWithInfo(img, mode, camera, getFPS, action, sequence, 0)
                         
                     # NEW Export keypoints
                     npy_path = os.path.join(DATA_PATH, action, str(sequence), str(frame_num))
@@ -204,7 +200,7 @@ def main():
                      DATA_PATH, image, actionsList, startFolder,
                      noOfSequences, sequenceLength, getFPS)
 
-        displayWithInfo(image, mode, camera, getFPS, action=0, sequence=0)
+        displayWithInfo(image, mode, camera, getFPS, action=0, sequence=0, timeRemaining=0)
         
 
     camera.release()
@@ -218,7 +214,7 @@ def selectMode(key, mode):
         mode = 1
     return mode
 
-def displayWithInfo(image, mode, camera, getFPS, action, sequence):
+def displayWithInfo(image, mode, camera, getFPS, action, sequence, timeRemaining):
     start_time = time.time()
 
     if cv2.waitKey(10)== 27:
@@ -241,9 +237,12 @@ def displayWithInfo(image, mode, camera, getFPS, action, sequence):
         cv2.putText(image, 'Collecting frames for {} Video Number {}'.format(action, sequence), (10,110), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
     if mode == 2:
-        cv2.putText(image, 'STARTING COLLECTION in {}'.format(action),
-                                        (150,240), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 6, cv2.LINE_AA)
-
+        cv2.putText(image, 'STARTING COLLECTION', (150,220), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 6, cv2.LINE_AA)
+        cv2.putText(image, '{} : # {}'.format(action, sequence), (180,250), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
+        cv2.putText(image, 'in {}'.format(round(2-timeRemaining, 2)), (250,280),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 6, cv2.LINE_AA)
     cv2.imshow("Window Original", image)
 
 if __name__ == "__main__":
