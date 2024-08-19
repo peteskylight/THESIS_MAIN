@@ -11,6 +11,12 @@ from ultralytics.utils.plotting import Annotator
 
 from utils import CvFpsCalc #FOR FPS
 
+#For checking purposes
+
+# Initialize models
+humanDetectorModel = YOLO('yolov8n.pt')
+humanPoseDetectorModel = YOLO('yolov8n-pose.pt')
+
 #import torch #========================================> GPU IMPORTANT <========
 
 
@@ -25,13 +31,23 @@ def parse_arguments() -> argparse.Namespace: # For Camera
     args = parser.parse_args()
     return args
 
-def drawLandmarks(image, x, y):
+def drawLandmarks(image, x, y, poseResults):
+    keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
+                    
+    flattenedKeypoints = keypoints_normalized.flatten()
+    flattenedList = flattenedKeypoints.tolist()
+    
+    print(flattenedList)
+    for keypointsResults in keypoints_normalized:
+        x = keypointsResults[0]
+        y = keypointsResults[1]
+        #print("X: {} | Y: {}".format(x,y))
     cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
                                    3, (0, 255, 0), -1)
     return image
 
 def setGlobal():
-    global DATA_PATH
+    global DATA_PATH, start_folder
     global actionsList
     global no_sequences
     global sequence_length
@@ -48,6 +64,7 @@ def folderSetUp():
 
     # Videos are going to be 30 frames in length
     sequence_length = 30
+    start_folder = 30
     
     #========> ACTUAL MAKING DIRECTORIES <========
     for action in actionsList: 
@@ -57,6 +74,97 @@ def folderSetUp():
             except:
                 pass
     
+def detectPose(frame, confidenceRate):
+    # Recolor Feed from RGB to BGR
+    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    image.flags.writeable = False
+    
+    #Higher confidence but needs good lighting & low frame drop
+    poseResults = humanPoseDetectorModel(frame, conf = confidenceRate)
+    # Recolor image back to BGR for rendering
+    image.flags.writeable = True
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+    return image, poseResults
+
+def drawBoundingBox(poseResults, frame, fps):
+    for result in poseResults:
+        annotator = Annotator(frame)
+        boxes = result.boxes
+
+        # SHOW FPS
+        cv2.putText(frame, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
+                    1.0, (255,255,255), 4, cv2.LINE_AA) 
+        for box in boxes:
+            b = box.xyxy[0]
+            c = box.cls
+
+def loggingKeypoints(cap, frame, mode, fps, poseResults):
+    if mode == 0:
+        for result in poseResults:
+            annotator = Annotator(frame)
+            boxes = result.boxes
+
+            # SHOW FPS
+            cv2.putText(frame, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0, (255,255,255), 4, cv2.LINE_AA) 
+            for box in boxes:
+                b = box.xyxy[0]
+                c = box.cls
+
+                try:
+                    drawLandmarks(frame, x, y, poseResults)
+                except:
+                    print("NO PERSON DETECTED!")
+                    continue
+                annotator.box_label(b, "Human Subject")
+
+    if mode == 1:
+        # NEW LOOP
+        # Loop through actions
+        for action in actionsList:
+            # Loop through sequences aka videos
+            for sequence in range(start_folder, start_folder+no_sequences):
+                # Loop through video length aka sequence length
+                for frame_num in range(sequence_length):
+                    # Read feed
+                    ret, frame = cap.read()
+
+                    keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
+                    
+                    flattenedKeypoints = keypoints_normalized.flatten()
+                    flattenedList = flattenedKeypoints.tolist()
+                    
+                    print(flattenedList)
+                    for keypointsResults in keypoints_normalized:
+                        x = keypointsResults[0]
+                        y = keypointsResults[1]
+                        #print("X: {} | Y: {}".format(x,y))
+                        drawLandmarks(frame, x, y)
+
+                    # NEW Apply wait logic
+                    if frame_num == 0: 
+                        cv2.putText(frame, 'STARTING COLLECTION', (120,200), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255, 0), 4, cv2.LINE_AA)
+                        cv2.putText(frame, 'Collecting frames for {} Video Number {}'.format(action, sequence), (15,12), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+                        # Show to screen
+                        cv2.imshow('OpenCV Feed', frame)
+                        cv2.waitKey(500)
+                    else: 
+                        cv2.putText(frame, 'Collecting frames for {} Video Number {}'.format(action, sequence), (15,12), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+                        # Show to screen
+                        cv2.imshow('OpenCV Feed', frame)
+                    
+                    # NEW Export keypoints
+                    npy_path = os.path.join(DATA_PATH, action, str(sequence), str(frame_num))
+                    np.save(npy_path, flattenedList)
+
+                    # Break gracefully
+                    if cv2.waitKey(10) & 0xFF == ord('q'):
+                        break
+
 
 def main():
 
@@ -82,67 +190,42 @@ def main():
 
     getFPS = CvFpsCalc(buffer_len=10)
 
+
+    mode = 0
+
+
     while True:
         # Read a frame from the camera
         fps = getFPS.get()
         ret, frame = camera.read()
         if not ret:
             break
-        # Recolor Feed from RGB to BGR
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image.flags.writeable = False
+
+        key = cv2.waitKey(10)
+        mode = selectMode(key, mode)
+
+        image, poseResults = detectPose(frame, 0.75)
+
         
-        
-        #Higher confidence but needs good lighting & low frame drop
-        
-        poseResults = humanPoseDetectorModel(frame, conf = 0.75)
-        # Recolor image back to BGR for rendering
-        image.flags.writeable = True
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-        k = cv2.waitKey(10)
-
-        for result in poseResults:
-            annotator = Annotator(frame)
-            boxes = result.boxes
-
-            # SHOW FPS
-            cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0, (255,255,255), 4, cv2.LINE_AA) 
-            for box in boxes:
-                b = box.xyxy[0]
-                c = box.cls
-
-                try:
-                    keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
-                    
-                    flattenedKeypoints = keypoints_normalized.flatten()
-                    flattenedList = flattenedKeypoints.tolist()
-                    
-                    print(flattenedList)
-                    for keypointsResults in keypoints_normalized:
-                        x = keypointsResults[0]
-                        y = keypointsResults[1]
-                        #print("X: {} | Y: {}".format(x,y))
-                        drawLandmarks(image, x, y)
-
-                        
-                except:
-                    print("NO PERSON DETECTED!")
-                    continue
-                annotator.box_label(b, "Human Subject")
 
                 #Key Pressing
                 
-                #if k == 102: #Letter "f" for frames
+                #if key == 102: #Letter "f" for frames
                 
-                if k == 114: #Letter "r" for recording
+                if key == 114: #Letter "r" for recording
                     cv2.putText(image, "FPS: " + str(fps), (10,30), cv2.FONT_HERSHEY_SIMPLEX,
                                         1.0, (0,0,0), 4, cv2.LINE_AA)
         cv2.imshow("Window", image)
 
-        if k == 27:
+        if key == 27:
             break 
+
+def selectMode(key, mode):
+    if key == 110:  # "n" for NORMAL MODE
+        mode = 0
+    if key == 114:  # "r" for RECORDING MODE
+        mode = 1
+    return mode
 
 if __name__ == "__main__":
     folderSetUp()
