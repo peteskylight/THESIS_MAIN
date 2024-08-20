@@ -46,7 +46,7 @@ def drawLandmarks(image, poseResults):
                                    3, (0, 255, 0), -1)
     drawBoundingBox(poseResults, image)
 
-    return flattenedList
+    return flattenedKeypoints
 
 
 def folderSetUp(DATA_PATH, actionsList, noOfSequences):
@@ -136,10 +136,10 @@ def loggingKeypoints(camera, frame, mode, poseResults,
                     npy_path = os.path.join(DATA_PATH, action, str(sequence), str(frame_num))
                     np.save(npy_path, flattenedList)
 
-                    
                     # Break gracefully
                     if cv2.waitKey(10) & 0xFF == ord('q'):
                         break
+        mode = 0
     return image
 
 def main():
