@@ -139,7 +139,7 @@ def loggingKeypoints(camera, frame, mode, poseResults,
                     # Break gracefully
                     if cv2.waitKey(10) & 0xFF == ord('q'):
                         break
-        mode = 0
+    mode = 0
     return image
 
 def main():
