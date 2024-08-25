@@ -1,28 +1,22 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0" version="24.7.7">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0" version="24.7.7">
   <diagram name="Page-1" id="aLJ2ssnALSl3UCn0UyYL">
-    <mxGraphModel dx="545" dy="463" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="704" dy="463" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="NvEOVaQNRHynf9NFY5qF-1" target="NvEOVaQNRHynf9NFY5qF-2">
+        <mxCell id="NvEOVaQNRHynf9NFY5qF-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="NvEOVaQNRHynf9NFY5qF-2" target="NvEOVaQNRHynf9NFY5qF-4" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-1" value="Interview / Survey to Students and Instructors/Proctors" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="40" y="115" width="120" height="60" as="geometry" />
-        </mxCell>
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="NvEOVaQNRHynf9NFY5qF-2" target="NvEOVaQNRHynf9NFY5qF-4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-2" value="Statistical Analysis (Descriptive &amp;amp; Sentiment)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="NvEOVaQNRHynf9NFY5qF-2" value="Data collection from previous literature." style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="200" y="120" width="120" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="NvEOVaQNRHynf9NFY5qF-4" target="NvEOVaQNRHynf9NFY5qF-6">
+        <mxCell id="NvEOVaQNRHynf9NFY5qF-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="NvEOVaQNRHynf9NFY5qF-4" target="NvEOVaQNRHynf9NFY5qF-6" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-4" value="Data Validations with a Licensed Professional" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="NvEOVaQNRHynf9NFY5qF-4" value="Data Validations with Licensed Professionals." style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="360" y="120" width="120" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="NvEOVaQNRHynf9NFY5qF-6" value="Digital Translation of Validated Data" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="NvEOVaQNRHynf9NFY5qF-6" value="Digital Translation of Validated Data" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="520" y="120" width="120" height="50" as="geometry" />
         </mxCell>
       </root>
