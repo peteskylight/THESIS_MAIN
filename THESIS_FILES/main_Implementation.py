@@ -81,7 +81,7 @@ def main():
         image.flags.writeable = False
         
         # Perform inference using the YOLO model
-        humanResults = humanDetectorModel(frame, conf = 0.3 , classes = 0)
+        humanResults = humanDetectorModel(image, conf = 0.3 , classes = 0)
 
         # Recolor image back to BGR for rendering
         image.flags.writeable = True

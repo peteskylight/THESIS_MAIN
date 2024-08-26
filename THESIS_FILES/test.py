@@ -1,5 +1,6 @@
 import cv2
 import argparse
+import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
@@ -31,21 +32,7 @@ def drawLandmarks(image, poseResults):
         #print("X: {} | Y: {}".format(x,y))
         cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
                                    3, (0, 255, 0), -1)
-    drawBoundingBox(poseResults, image)
-
     return flattenedKeypoints
-
-def detectPose(frame, confidenceRate):
-    # Recolor Feed from RGB to BGR
-    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    image.flags.writeable = False
-    
-    #Higher confidence but needs good lighting & low frame drop
-    poseResults = humanPoseDetectorModel(frame, conf = confidenceRate)
-    # Recolor image back to BGR for rendering
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    return image, poseResults
 
 def drawBoundingBox(poseResults, frame):
     for result in poseResults:
@@ -57,19 +44,19 @@ def drawBoundingBox(poseResults, frame):
             c = box.cls
             annotator.box_label(b, "Human Subject")
 
-def detectHuman(frame,model, confidenceRate):
+def detectResults(frame,model, confidenceRate):
     # Recolor Feed from RGB to BGR
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     image.flags.writeable = False
     
     # Perform inference using the YOLO model
-    humanResults = model(frame, conf = confidenceRate)
+    results = model(frame, conf = confidenceRate)
 
     # Recolor image back to BGR for rendering
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
-    return image, humanResults
+    return image, results
 
 def main():
     #=====================================================> UNCOMMENT THIS FOR GPU <=====
@@ -98,32 +85,33 @@ def main():
     while camera.isOpened():
         # Read a frame from the camera
         fps = getFPS.get()
+
         ret, frame = camera.read()
+        
         if not ret:
             break
         
-        image, humanResults = detectHuman(frame, humanDetectorModel, 0.8)
-        
+        image, humanResults = detectResults(frame, humanDetectorModel, 0.8)
+
         for result in humanResults:
             
-            annotator = Annotator(frame)
+            annotator = Annotator(image)
             boxes = result.boxes
             for box in boxes:
                 b = box.xyxy[0]
                 c = box.cls
                 cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
-                
+
                 try:
-                    # poseResults = humanPoseDetectorModel(cropped_image, conf = 0.7, classes = 0)
-                    # keypoints_normalized = poseResults[0].keypoints.xyn.cpu().numpy()[0]
-                    #print(keypoints_normalized)
-                    annotator.box_label(b, "Human")
+                    img, poseResults = detectResults(cropped_image, humanPoseDetectorModel, 0.7)
+                    drawLandmarks(image=cropped_image, poseResults=poseResults)
                 except:
                     continue
-                
-            cv2.imshow('Annotated Frame', frame)
-        cv2.putText(image, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                annotator.box_label(b, "Human Subject")
+            cv2.putText(image, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                     1.0, (0, 0, 0), 4, cv2.LINE_AA)
+            cv2.imshow('Annotated Frame', image)
+        
         if cv2.waitKey(10) == 27:
             break
 
