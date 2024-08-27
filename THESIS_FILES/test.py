@@ -61,6 +61,8 @@ def detectResults(frame,model, confidenceRate):
     
     return image, results
 
+
+
 def main():
 
     #YOLO AREA
@@ -110,20 +112,19 @@ def main():
             break
         
         img, poseResults = detectResults(frame, humanPoseDetectorModel, 0.75)
+
         flattenedKeypoints =  drawLandmarks(image=img, poseResults=poseResults)
         
 
         sequence.append(flattenedKeypoints)
         sequence = sequence[-30:]
-
-
         
         if len(sequence) == 30:
             actionResult = actionModel.predict(np.expand_dims(sequence, axis=0))[0]
             translateActionResult = actionsList[np.argmax(actionResult)]
 
             print(translateActionResult)
-        
+
         if recentAction != translateActionResult:
             recentAction = translateActionResult
 
@@ -133,28 +134,6 @@ def main():
                      1.0, (255,255,255), 4, cv2.LINE_AA)
         cv2.imshow('Test Frame', img)
         
-        # image, humanResults = detectResults(frame, humanDetectorModel, 0.8)
-
-        # for result in humanResults:
-            
-        #     annotator = Annotator(image)
-        #     boxes = result.boxes
-        #     for box in boxes:
-        #         b = box.xyxy[0]
-        #         c = box.cls
-        #         cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
-
-        #         try:
-        #             img, poseResults = detectResults(cropped_image, humanPoseDetectorModel, 0.7)
-        #             drawLandmarks(image=cropped_image, poseResults=poseResults)
-        #         except:
-        #             continue
-
-        #         annotator.box_label(b, "Human Subject")
-                
-        #     cv2.putText(image, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-        #             1.0, (0, 0, 0), 4, cv2.LINE_AA)
-        #     cv2.imshow('Annotated Frame', image)
 
         
         if cv2.waitKey(10) == 27:
