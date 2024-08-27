@@ -1,9 +1,12 @@
 import cv2
 import argparse
 import numpy as np
+import os
 
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
+
+from tensorflow.keras.models import load_model
 
 from utils import CvFpsCalc #FOR FPS
 
@@ -34,7 +37,7 @@ def drawLandmarks(image, poseResults):
                                    3, (0, 255, 0), -1)
     return flattenedKeypoints
 
-def drawBoundingBox(poseResults, frame):
+def drawBoundingBox(poseResults, frame, action):
     for result in poseResults:
         annotator = Annotator(frame)
         boxes = result.boxes
@@ -42,7 +45,7 @@ def drawBoundingBox(poseResults, frame):
         for box in boxes:
             b = box.xyxy[0]
             c = box.cls
-            annotator.box_label(b, "Human Subject")
+            annotator.box_label(b, action)
 
 def detectResults(frame,model, confidenceRate):
     # Recolor Feed from RGB to BGR
@@ -59,6 +62,9 @@ def detectResults(frame,model, confidenceRate):
     return image, results
 
 def main():
+
+    #YOLO AREA
+
     #=====================================================> UNCOMMENT THIS FOR GPU <=====
     #torch.cuda.set_device(0) 
     #humanDetectorModel = YOLO('yolov8n.pt', task='detect').to('cuda')
@@ -71,7 +77,18 @@ def main():
     humanDetectorModel.classes = [0] #Limit to human detection
     humanPoseDetectorModel.classes = [0] #Limit to juman detection
 
+    #TENSORFLOW AREA
+    model = "actions.h5"
+    actionModel = load_model(model)
 
+    actionsList = np.array(['Looking Left', 'Looking Right', 'Looking Up'])
+    sequence = []
+    sentence = []
+    recentAction = ''
+    translateActionResult = ''
+
+    
+    #PARAMETERS AREA
     cameraInput = 0
     camera = cv2.VideoCapture(cameraInput)
     getFPS = CvFpsCalc(buffer_len=10)
@@ -82,6 +99,7 @@ def main():
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, frameWidth)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, frameHeight)
 
+
     while camera.isOpened():
         # Read a frame from the camera
         fps = getFPS.get()
@@ -91,26 +109,53 @@ def main():
         if not ret:
             break
         
-        image, humanResults = detectResults(frame, humanDetectorModel, 0.8)
+        img, poseResults = detectResults(frame, humanPoseDetectorModel, 0.75)
+        flattenedKeypoints =  drawLandmarks(image=img, poseResults=poseResults)
+        
 
-        for result in humanResults:
+        sequence.append(flattenedKeypoints)
+        sequence = sequence[-30:]
+
+
+        
+        if len(sequence) == 30:
+            actionResult = actionModel.predict(np.expand_dims(sequence, axis=0))[0]
+            translateActionResult = actionsList[np.argmax(actionResult)]
+
+            print(translateActionResult)
+        
+        if recentAction != translateActionResult:
+            recentAction = translateActionResult
+
+
+        drawBoundingBox(poseResults, img, recentAction)
+        cv2.putText(img, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                     1.0, (255,255,255), 4, cv2.LINE_AA)
+        cv2.imshow('Test Frame', img)
+        
+        # image, humanResults = detectResults(frame, humanDetectorModel, 0.8)
+
+        # for result in humanResults:
             
-            annotator = Annotator(image)
-            boxes = result.boxes
-            for box in boxes:
-                b = box.xyxy[0]
-                c = box.cls
-                cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
+        #     annotator = Annotator(image)
+        #     boxes = result.boxes
+        #     for box in boxes:
+        #         b = box.xyxy[0]
+        #         c = box.cls
+        #         cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
 
-                try:
-                    img, poseResults = detectResults(cropped_image, humanPoseDetectorModel, 0.7)
-                    drawLandmarks(image=cropped_image, poseResults=poseResults)
-                except:
-                    continue
-                annotator.box_label(b, "Human Subject")
-            cv2.putText(image, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                    1.0, (0, 0, 0), 4, cv2.LINE_AA)
-            cv2.imshow('Annotated Frame', image)
+        #         try:
+        #             img, poseResults = detectResults(cropped_image, humanPoseDetectorModel, 0.7)
+        #             drawLandmarks(image=cropped_image, poseResults=poseResults)
+        #         except:
+        #             continue
+
+        #         annotator.box_label(b, "Human Subject")
+                
+        #     cv2.putText(image, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+        #             1.0, (0, 0, 0), 4, cv2.LINE_AA)
+        #     cv2.imshow('Annotated Frame', image)
+
         
         if cv2.waitKey(10) == 27:
             break
