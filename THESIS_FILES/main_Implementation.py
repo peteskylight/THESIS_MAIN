@@ -1,8 +1,12 @@
 import cv2
 import argparse
+import numpy as np
+import os
 
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
+
+from tensorflow.keras.models import load_model
 
 from utils import CvFpsCalc #FOR FPS
 
@@ -21,7 +25,6 @@ def parse_arguments() -> argparse.Namespace: # For Camera
 
 def drawLandmarks(image, poseResults):
     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
-                    
     flattenedKeypoints = keypoints_normalized.flatten()
     flattenedList = flattenedKeypoints.tolist()
     #print(flattenedList)
@@ -31,23 +34,10 @@ def drawLandmarks(image, poseResults):
         #print("X: {} | Y: {}".format(x,y))
         cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
                                    3, (0, 255, 0), -1)
-    drawBoundingBox(poseResults, image)
-
+    
     return flattenedKeypoints
 
-def detectPose(frame, confidenceRate):
-    # Recolor Feed from RGB to BGR
-    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    image.flags.writeable = False
-    
-    #Higher confidence but needs good lighting & low frame drop
-    poseResults = humanPoseDetectorModel(frame, conf = confidenceRate)
-    # Recolor image back to BGR for rendering
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    return image, poseResults
-
-def drawBoundingBox(poseResults, frame):
+def drawBoundingBox(poseResults, frame, action):
     for result in poseResults:
         annotator = Annotator(frame)
         boxes = result.boxes
@@ -55,58 +45,113 @@ def drawBoundingBox(poseResults, frame):
         for box in boxes:
             b = box.xyxy[0]
             c = box.cls
-            annotator.box_label(b, "Human Subject")
+            annotator.box_label(b, action)
+
+def detectResults(frame,model, confidenceRate):
+    # Recolor Feed from RGB to BGR
+    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    image.flags.writeable = False
+    
+    # Perform inference using the YOLO model
+    results = model(frame, conf = confidenceRate)
+
+    # Recolor image back to BGR for rendering
+    image.flags.writeable = True
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    
+    return image, results
+
+
 
 def main():
-    cameraInput = 'students4.jpg'
 
-    humanDetectorModel = YOLO('yolov8n.pt')
-    humanPoseDetectorModel = YOLO('yolov8n-pose.pt')
-    
+    #YOLO AREA
+
+    #=====================================================> UNCOMMENT THIS FOR GPU <=====
+    #torch.cuda.set_device(0) 
+    #humanDetectorModel = YOLO('yolov8n.pt', task='detect').to('cuda')
+    #humanPoseDetectorModel = YOLO('yolov8n-pose.pt', task='detect').to('cuda')
+
+    humanDetectorModel = YOLO('yolov8n.pt') #COMMENT THIS AND (V)THIS(V) when GPU
+    humanPoseDetectorModel = YOLO('yolov8n-pose.pt')# <==========THIS
+    #=> ^^^COMMENT THESE TWO FOR GPU ^^^ <=
+    #====================================================================================
     humanDetectorModel.classes = [0] #Limit to human detection
     humanPoseDetectorModel.classes = [0] #Limit to juman detection
 
-    camera = cv2.VideoCapture(cameraInput)
+    #TENSORFLOW AREA
+    model = "actions.h5"
+    actionModel = load_model(model)
 
+    actionsList = np.array(['Looking Left', 'Looking Right', 'Looking Up'])
+    flattenedKeypoints = np.empty((3, 2), dtype=np.float64)
+    sequence = []
+    sentence = []
+    recentAction = ''
+    translateActionResult = ''
+
+    
+    #PARAMETERS AREA
+    cameraInput = 0
+    camera = cv2.VideoCapture(cameraInput)
     getFPS = CvFpsCalc(buffer_len=10)
 
-    while True:
+    args = parse_arguments()
+    frameWidth, frameHeight = args.webcam_resolution
+    camera = cv2.VideoCapture(cameraInput)  # Use the specified camera
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, frameWidth)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, frameHeight)
+
+
+    while camera.isOpened():
         # Read a frame from the camera
         fps = getFPS.get()
+
         ret, frame = camera.read()
+        
         if not ret:
             break
-        # Recolor Feed from RGB to BGR
-        image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        image.flags.writeable = False
         
-        # Perform inference using the YOLO model
-        humanResults = humanDetectorModel(image, conf = 0.3 , classes = 0)
+        img, humanResults = detectResults(frame, humanDetectorModel, 0.75)
 
-        # Recolor image back to BGR for rendering
-        image.flags.writeable = True
-        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-        
         for result in humanResults:
-            
             annotator = Annotator(frame)
             boxes = result.boxes
             for box in boxes:
                 b = box.xyxy[0]
                 c = box.cls
-                cropped_image = image[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
+                cropped_image = img[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
                 
                 try:
-                    poseResults = humanPoseDetectorModel(cropped_image, conf = 0.7, classes = 0)
-                    keypoints_normalized = poseResults[0].keypoints.xyn.cpu().numpy()[0]
-                    print(keypoints_normalized)
-                    annotator.box_label(b, "Human")
+                    poseResults = humanPoseDetectorModel(cropped_image, conf = 0.7)
+                    flattenedKeypoints =  drawLandmarks(image=cropped_image, poseResults=poseResults)
+                    sequence.append(flattenedKeypoints)
+                    sequence = sequence[-30:]
+
+                    if len(sequence) == 30:
+                        try:
+                            actionResult = actionModel.predict(np.expand_dims(sequence, axis=0))[0]
+                            translateActionResult = actionsList[np.argmax(actionResult)]
+                            print(translateActionResult)
+                        except:
+                            print(("="*10)+ "> > > PROBLEM HERE ! ! ! < < <"+("="*10))
+                            continue
+
+                    if recentAction != translateActionResult:
+                        recentAction = translateActionResult
+
                 except:
+                    print("YOU MIGHT WANT TO CHECK IN HERE=======================<<<<<<<<")
                     continue
-                
-            cv2.imshow('Annotated Frame', frame)
-        cv2.putText(image, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                    1.0, (0, 0, 0), 4, cv2.LINE_AA)
+
+            drawBoundingBox(humanResults, img, recentAction)
+
+            cv2.putText(img, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                     1.0, (255,255,255), 4, cv2.LINE_AA)
+        
+            cv2.imshow('Test Frame', img)
+
+        
         if cv2.waitKey(10) == 27:
             break
 
