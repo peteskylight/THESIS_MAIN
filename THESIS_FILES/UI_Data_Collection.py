@@ -85,6 +85,7 @@ def drawUIelements(root):
     #NUMBER 1
     detectButton = Button(root, text="Start Detecting", command=execDetect)
     detectButton.place(relx=0.6, rely=0.92)
+    detectButton.config(state=DISABLED)
 
 
 def drawLandmarks(image, poseResults):
@@ -144,6 +145,7 @@ def showCamera():
     # Configure image in the label 
     cameraLabel.configure(image=photo_image) 
     openCameraButton.config(state=tk.DISABLED)
+    detectButton.config(state=NORMAL)
     # Repeat the same process after every 10 seconds 
     cameraLabel.after(10, showCamera) 
 
@@ -165,7 +167,7 @@ def main():
     #CAMERA PARAMETERS AREA
     args = parse_arguments()
     frameWidth, frameHeight = args.webcam_resolution
-    cameraInput = 1
+    cameraInput = 0
     camera = cv2.VideoCapture(cameraInput)  # Use the specified camera
     camera.set(cv2.CAP_PROP_FRAME_WIDTH, frameWidth)
     camera.set(cv2.CAP_PROP_FRAME_HEIGHT, frameHeight)
