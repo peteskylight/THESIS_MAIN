@@ -7,6 +7,7 @@ from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
 from tensorflow.keras.models import load_model
+import tensorflow as tf
 
 from utils import CvFpsCalc #FOR FPS
 
@@ -25,17 +26,21 @@ def parse_arguments() -> argparse.Namespace: # For Camera
 
 def drawLandmarks(image, poseResults):
     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
-    flattenedKeypoints = keypoints_normalized.flatten()
-    flattenedList = flattenedKeypoints.tolist()
-    #print(flattenedList)
+    if poseResults[0] == 1:
+        # Detected keypoints
+        flattenedKeypoints = keypoints_normalized.flatten()
+    else:
+        # No keypoints detected, fill the array with zeros
+        flattenedKeypoints = np.zeros(17 * 2)
+
     for keypointsResults in keypoints_normalized:
         x = keypointsResults[0]
         y = keypointsResults[1]
-        #print("X: {} | Y: {}".format(x,y))
         cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
-                                   3, (0, 255, 0), -1)
-    
+                   3, (0, 255, 0), -1)
+
     return flattenedKeypoints
+
 
 def drawBoundingBox(poseResults, frame, action):
     for result in poseResults:
@@ -61,7 +66,8 @@ def detectResults(frame,model, confidenceRate):
     
     return image, results
 
-
+def detectMovements():
+    return 0
 
 def main():
 
@@ -80,11 +86,16 @@ def main():
     humanPoseDetectorModel.classes = [0] #Limit to juman detection
 
     #TENSORFLOW AREA
-    model = "actions.h5"
-    actionModel = load_model(model)
+    convertedModel = "actionsLITE.tflite"
+    actionModel = tf.lite.Interpreter(model_path=convertedModel) # Load TFLite model and allocate tensors.
+    actionModel.allocate_tensors()
+    
+    input_details = actionModel.get_input_details() #FOR CHECKING MODEL I/O DETAILS
+    output_details = actionModel.get_output_details()
 
     actionsList = np.array(['Looking Left', 'Looking Right', 'Looking Up'])
-    flattenedKeypoints = np.empty((3, 2), dtype=np.float64)
+
+    flattenedKeypoints = np.empty((3, 2), dtype=np.float32)
     sequence = []
     sentence = []
     recentAction = ''
@@ -108,11 +119,13 @@ def main():
         fps = getFPS.get()
 
         ret, frame = camera.read()
-        
+
         if not ret:
             break
-        
+
         img, humanResults = detectResults(frame, humanDetectorModel, 0.75)
+
+        # Check if exactly one person is detected
 
         for result in humanResults:
             annotator = Annotator(frame)
@@ -121,40 +134,52 @@ def main():
                 b = box.xyxy[0]
                 c = box.cls
                 cropped_image = img[int(b[1]):int(b[3]), int(b[0]):int(b[2])]
-                
-                try:
-                    poseResults = humanPoseDetectorModel(cropped_image, conf = 0.7)
-                    flattenedKeypoints =  drawLandmarks(image=cropped_image, poseResults=poseResults)
-                    sequence.append(flattenedKeypoints)
-                    sequence = sequence[-30:]
 
-                    if len(sequence) == 30:
-                        try:
-                            actionResult = actionModel.predict(np.expand_dims(sequence, axis=0))[0]
-                            translateActionResult = actionsList[np.argmax(actionResult)]
-                            print(translateActionResult)
-                        except:
-                            print(("="*10)+ "> > > PROBLEM HERE ! ! ! < < <"+("="*10))
-                            continue
+                # try:
+                poseResults = humanPoseDetectorModel(cropped_image, conf=0.7)
+                flattenedKeypoints = drawLandmarks(image=cropped_image, poseResults=poseResults)
 
-                    if recentAction != translateActionResult:
-                        recentAction = translateActionResult
+                sequence.append(flattenedKeypoints)
+                sequence = sequence[-30:]
 
-                except:
-                    print("YOU MIGHT WANT TO CHECK IN HERE=======================<<<<<<<<")
-                    continue
+                if len(sequence) == 30:
+                    # try:
+                    # PREPROCESS THE INPUTS
+                    # for list in sequence:
+                    #     print("# LENGTH: {}".format(len(list)))
+                    expandedKeypoints = np.expand_dims(sequence, axis=0)
+                    translatedExpanded = expandedKeypoints.astype(np.float32)
 
-            drawBoundingBox(humanResults, img, recentAction)
+                    actionModel.set_tensor(input_details[0]['index'], translatedExpanded)#FEED THE INPUTS
 
-            cv2.putText(img, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                     1.0, (255,255,255), 4, cv2.LINE_AA)
-        
-            cv2.imshow('Test Frame', img)
+                    actionModel.invoke()  # RUN INFERENCE
 
-        
+                    actionResult = actionModel.get_tensor(output_details[0]['index'])
+                    
+                    print("===============>>>>> ", actionResult)
+                    translateActionResult = actionsList[np.argmax(actionResult)]
+                    print(translateActionResult)
+
+                    # except:
+                    #     print(("="*10) + "> > > PROBLEM HERE ! ! ! < < <" + ("="*10))
+                    #     continue
+
+                if recentAction != translateActionResult:
+                    recentAction = translateActionResult
+
+                # except:
+                #     print("YOU MIGHT WANT TO CHECK IN HERE=======================<<<<<<<<")
+                #     continue
+
+                drawBoundingBox(humanResults, img, recentAction)
+
+                cv2.putText(img, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                            1.0, (255, 255, 255), 4, cv2.LINE_AA)
+
+                cv2.imshow('Test Frame', img)
+
         if cv2.waitKey(10) == 27:
             break
-
 
 if __name__ == "__main__":
     main()
