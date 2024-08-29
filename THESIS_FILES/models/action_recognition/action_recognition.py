@@ -10,8 +10,7 @@ class actionClassifier(object):
         model_path='actionsLITE.tflite',
         num_threads=1,
     ):
-        self.interpreter = tf.lite.Interpreter(model_path=model_path,
-                                               num_threads=num_threads)
+        self.interpreter = tf.lite.Interpreter(model_path=model_path)
 
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
@@ -24,7 +23,7 @@ class actionClassifier(object):
         input_details_tensor_index = self.input_details[0]['index']
         self.interpreter.set_tensor(
             input_details_tensor_index,
-            np.array([landmark_list], dtype=np.float32))
+            landmark_list)
         
         self.interpreter.invoke()
 
@@ -32,6 +31,6 @@ class actionClassifier(object):
 
         result = self.interpreter.get_tensor(output_details_tensor_index)
 
-        result_index = np.argmax(np.squeeze(result))
+        result_index = np.argmax(result)
 
         return result, result_index

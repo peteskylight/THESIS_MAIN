@@ -27,12 +27,8 @@ def parse_arguments() -> argparse.Namespace: # For Camera
 
 def drawLandmarks(image, poseResults):
     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
-    if poseResults[0] == 1:
-        # Detected keypoints
-        flattenedKeypoints = keypoints_normalized.flatten()
-    else:
-        # No keypoints detected, fill the array with zeros
-        flattenedKeypoints = np.zeros(17 * 2)
+
+    flattenedKeypoints = keypoints_normalized.flatten()
 
     for keypointsResults in keypoints_normalized:
         x = keypointsResults[0]
@@ -138,10 +134,14 @@ def main():
 
                 sequence.append(flattenedKeypoints)
                 sequence = sequence[-30:]
+                
 
                 if len(sequence) == 30:
                     # try:
-                    result, actionResult = actionModel(sequence)
+                    expandedArray = np.expand_dims(sequence, axis=0)
+                    convertExpandedArray = expandedArray.astype(np.float32)
+
+                    result, actionResult = actionModel(convertExpandedArray)
                     print("===============>>>>>>>> ", result)
                     translateActionResult = actionsList[actionResult]
                     print(translateActionResult)
