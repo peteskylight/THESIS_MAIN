@@ -1,0 +1,1 @@
+from models.action_recognition.action_recognition import actionClassifier
