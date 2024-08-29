@@ -69,8 +69,6 @@ def addAction():
                                         str(sequence)))
             except:
                 pass
-            
-    folderNameInput.delete("1.0", "end")
 
 def drawUIelements(root):
     #GLOBAL AREA
