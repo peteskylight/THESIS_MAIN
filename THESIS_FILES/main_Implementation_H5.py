@@ -133,8 +133,8 @@ def main():
                             actionResult = actionModel.predict(np.expand_dims(sequence, axis=0))[0]
                             translateActionResult = actionsList[np.argmax(actionResult)]
                             print(translateActionResult)
-                        except:
-                            print(("="*10)+ "> > > PROBLEM HERE ! ! ! < < <"+("="*10))
+                        except Exception as e:
+                            print(("="*10)+ "> > > PROBLEM HERE ! ! ! {} < < <".format(e))
                             continue
 
                     if recentAction != translateActionResult:

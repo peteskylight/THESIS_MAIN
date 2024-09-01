@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import messagebox
 import tkinter as tk
 from PIL import Image, ImageTk
 
@@ -59,16 +60,24 @@ def addAction():
     noOfSequences = 30
     DATA_PATH = os.path.join('THESIS_FILES', 'HumanPose_DATA') 
     actionsList = []
+    actionInput = folderNameInput.get(1.0, "end-1c")
+    flagExist = False
 
-    actionsList.append(folderNameInput.get(1.0, "end-1c"))
-    
-    for action in actionsList:
-        for sequence in range(1, noOfSequences+1):
-            try: 
-                os.makedirs(os.path.join(DATA_PATH, action,
-                                        str(sequence)))
-            except:
-                pass
+    if actionInput == '':
+        messagebox.showinfo("Information", "Please enter action name!")
+    else:
+        actionsList.append(actionInput)
+        for action in actionsList:
+            for sequence in range(1, noOfSequences+1):
+                try: 
+                    os.makedirs(os.path.join(DATA_PATH, action,
+                                            str(sequence)))
+                except FileExistsError:
+                    flagExist = True
+                    pass
+        if flagExist:
+            messagebox.showerror(title="Already Existed!", message="The name of action you entered already exists!")
+        folderNameInput.delete("1.0", "end")
 
 def drawUIelements(root):
     #GLOBAL AREA
