@@ -53,8 +53,10 @@ def execDetect():
     global isDetect
     if isDetect:
         isDetect = False
+        detectButton.config(text='Start Detect')
     else:
         isDetect =  True
+        detectButton.config(text='Stop Detect')
 
 def addAction():
     noOfSequences = 30
@@ -113,7 +115,6 @@ def drawUIelements(root):
 
 def drawLandmarks(image, poseResults):
     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
-                    
     flattenedKeypoints = keypoints_normalized.flatten()
     flattenedList = flattenedKeypoints.tolist()
     #print(flattenedList)
@@ -123,8 +124,6 @@ def drawLandmarks(image, poseResults):
         #print("X: {} | Y: {}".format(x,y))
         cv2.circle(image, (int(x * image.shape[1]), int(y * image.shape[0])),
                                    3, (0, 255, 0), -1)
-
-
     return flattenedKeypoints
 
 
@@ -143,7 +142,6 @@ def showCamera():
                 b = box.xyxy[0]
                 c = box.cls
                 # SHOW FPS
-                
                 try:
                     drawLandmarks(image, poseResults)
                 except:
