@@ -141,13 +141,6 @@ def main():
         for result in humanResults:
             annotator = Annotator(frame)
             boxes = result.boxes
-            clsList = boxes.cls.tolist()  # Convert tensor to list
-            xyxy = boxes.xyxy
-            conf = boxes.conf
-            xywh = boxes.xywh  # box with xywh format, (N, 4)
-            for class_index in clsList:
-                class_name = class_names[int(class_index)]
-                #print("Class:", class_name)
             for box in boxes:
                 b = box.xyxy[0]
                 c = box.cls
@@ -177,6 +170,16 @@ def main():
             cv2.putText(img, "FPS:" + str(fps), (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                      1.0, (255,255,255), 4, cv2.LINE_AA)
             
+        for result in humanResults:
+            boxes = result.boxes  # Boxes object for bbox outputs
+            probs = result.probs  # Class probabilities for classification outputs
+            clsList = boxes.cls.tolist()  # Convert tensor to list
+            xyxy = boxes.xyxy
+            conf = boxes.conf
+            xywh = boxes.xywh  # box with xywh format, (N, 4)
+            for class_index in clsList:
+                class_name = class_names[int(class_index)]
+                #print("Class:", class_name)
         red_cls = np.array(clsList)
         conf = conf.detach().cpu().numpy()
         xyxy = xyxy.detach().cpu().numpy()

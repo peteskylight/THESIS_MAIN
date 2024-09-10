@@ -1,0 +1,75 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0" version="24.7.12">
+  <diagram name="Page-1" id="r-kput5aOteryEQ8ysr6">
+    <mxGraphModel dx="1113" dy="709" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="640" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-3" value="POWER SUPPLY" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="680" y="280" width="110" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.216;exitY=0.995;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="G6KQXJiW1i0-xRSnXs-G-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="326.4" y="340.01" as="sourcePoint" />
+            <mxPoint x="420" y="390.31" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="300" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.675;exitY=1.018;exitDx=0;exitDy=0;exitPerimeter=0;strokeWidth=2;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-6" target="G6KQXJiW1i0-xRSnXs-G-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;startArrow=classic;startFill=1;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-6" target="G6KQXJiW1i0-xRSnXs-G-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-6" value="PROGRAM CONTROL UNIT" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="240" y="280" width="400" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.162;entryY=0.04;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;startFill=1;strokeWidth=2;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-7" target="G6KQXJiW1i0-xRSnXs-G-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-7" value="REAL TIME CLOCK" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="240" y="170" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-10" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.849;entryY=-0.026;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-9" target="G6KQXJiW1i0-xRSnXs-G-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-9" value="WEIGHT SENSOR" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="520" y="170" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-11" value="SPEAKER" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="240" y="380" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-26" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.231;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;startArrow=classic;startFill=1;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-14" target="G6KQXJiW1i0-xRSnXs-G-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-14" value="FOOD DISPENSER MOTOR" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="380" y="480" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-17" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.513;entryY=-0.006;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=2;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-16" target="G6KQXJiW1i0-xRSnXs-G-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-16" value="KEYPAD BUTTONS" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="380" y="170" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.769;entryY=0.993;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;startArrow=classic;startFill=1;" edge="1" parent="1" source="G6KQXJiW1i0-xRSnXs-G-18" target="G6KQXJiW1i0-xRSnXs-G-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-18" value="WATER DISPENSER PUMP" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="520" y="480" width="120" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-19" value="MOTOR DRIVERS" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="380" y="380" width="260" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="G6KQXJiW1i0-xRSnXs-G-27" value="INTERNET CONNECTIVITY" style="rounded=0;whiteSpace=wrap;html=1;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="30" y="280" width="170" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
