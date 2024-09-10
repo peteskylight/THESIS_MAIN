@@ -1,0 +1,9 @@
+train: ../CrowdHuman/images/train
+val: ../CrowdHuman/images/val
+#test: test.txt
+
+#number of classes
+nc: 3
+
+# class names
+names: ['head', 'full body', 'visible body']

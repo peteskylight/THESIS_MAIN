@@ -2,9 +2,11 @@ import cv2
 import argparse
 import numpy as np
 import os
+import torch
 
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
+#from ultralytics.yolo.v8.detect.predict import Detection
 
 from tensorflow.keras.models import load_model
 
@@ -62,7 +64,6 @@ def detectResults(frame,model, confidenceRate):
     return image, results
 
 
-
 def main():
 
     #YOLO AREA
@@ -71,8 +72,10 @@ def main():
     #torch.cuda.set_device(0) 
     #humanDetectorModel = YOLO('yolov8n.pt', task='detect').to('cuda')
     #humanPoseDetectorModel = YOLO('yolov8n-pose.pt', task='detect').to('cuda')
-
-    humanDetectorModel = YOLO('yolov8n.pt') #COMMENT THIS AND (V)THIS(V) when GPU
+    #PATH
+    modelPath = 'best.pt'
+    humanDetectorModel = YOLO(modelPath) #COMMENT THIS AND (V)THIS(V) when GPU
+    #humanDetectorModel = torch.hub.load('ultralytics/yolov8', 'custom', path='best.pt', trust_repo='check')
     humanPoseDetectorModel = YOLO('yolov8n-pose.pt')# <==========THIS
     #=> ^^^COMMENT THESE TWO FOR GPU ^^^ <=
     #====================================================================================
@@ -92,7 +95,7 @@ def main():
 
     
     #PARAMETERS AREA
-    cameraInput = 0
+    cameraInput = 1
     camera = cv2.VideoCapture(cameraInput)
     getFPS = CvFpsCalc(buffer_len=10)
 
