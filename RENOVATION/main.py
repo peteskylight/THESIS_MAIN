@@ -11,17 +11,6 @@ from utils import CvFpsCalc #FOR FPS
 from camera_utils import Camera
 from trackers import StudentTracker
 
-def parse_arguments() -> argparse.Namespace: # For Camera
-    parser=argparse.ArgumentParser(description="YOLOv8 Live")
-    parser.add_argument(
-        "--webcam-resolution",
-        default=[1280,720], #default must be 1280, 720
-        nargs=2,
-        type=int
-    )
-    args = parser.parse_args()
-    return args
-
 def main():
 
     #CAMERA PARAMETERS AREA
