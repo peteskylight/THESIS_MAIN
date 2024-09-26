@@ -26,7 +26,8 @@ def parse_arguments() -> argparse.Namespace: # For Camera
 def main():
 
     # CAMERA PARAMETERS AREA
-    cameraInput = 'C:/Users/peter/Desktop/THESIS FILES/START/THESIS_MAIN/RESOURCES/Video_DATASET/Room Keypoints/Left_Corner.mp4'
+    # cameraInput = 'C:/Users/peter/Desktop/THESIS FILES/START/THESIS_MAIN/RESOURCES/VIDEOS/640 width/Left_Corner.mp4'
+    cameraInput=0
     camera = cv2.VideoCapture(cameraInput)
     getFPS = CvFpsCalc(buffer_len=10)
 
