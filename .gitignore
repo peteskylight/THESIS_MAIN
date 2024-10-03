@@ -1,3 +1,5 @@
 
 RESOURCES/CAMERA_PARAM/multi_person_pose_detection_with_yolov5_and_mediapipe/
 THESIS_FILES/utils/__pycache__/cvfpscalc.cpython-312.pyc
+*.avi
+*.mp4

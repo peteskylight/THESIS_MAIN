@@ -1,6 +1,6 @@
 from utils.cvfpscalc import CvFpsCalc
 
-from .video_utils import read_video, save_video
+from .video_utils import VideoUtils
 from .bbox_utils import (get_center_of_bbox,
                          measure_distance,
                          get_foot_position,
@@ -8,7 +8,9 @@ from .bbox_utils import (get_center_of_bbox,
                          get_height_of_bbox,
                          measure_xy_distance,
                          get_center_of_bbox,
-                         draw_bboxes,
-                         draw_room_bbox)
+                         )
+
+from .drawing_utils import DrawingUtils
+
 from .conversions import convert_pixel_distance_to_meters, convert_meters_to_pixel_distance
 from .player_stats_drawer_utils import draw_player_stats

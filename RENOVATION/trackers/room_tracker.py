@@ -9,21 +9,48 @@ class RoomTracker:
     
     def detectRoomKeypoints(self, frames):
         room_detections = []
-        per_frame = []
         
         for frame in frames:
-            results = self.roomAnnotationModel.predict(frame, conf = self.roomAnnotConf, save=False)
+            results = self.roomAnnotationModel.predict(frame, conf=self.roomAnnotConf, save=False)
             for result in results:
+                per_frame = []
+                detected_classes = set()
                 boxes = result.boxes
                 for box in boxes:
                     b = box.xyxy[0]
                     c = box.cls
-                    per_frame.append(b.tolist())
-                    print(c.tolist())
+                    class_name = self.roomAnnotationModel.names[int(c)]
+                    
+                    #Limit to 1 detection of class
+                    if class_name not in detected_classes:
+                        per_frame.append({'box': b.tolist(), 'class': class_name})
+                        detected_classes.add(class_name)
+                
                 room_detections.append(per_frame)
-                per_frame=[]
-        #print(room_detections)
+        
         return room_detections
                 
+def detectRoomKeypoints(self, frames):
+    room_detections = []
+    
+    for frame in frames:
+        results = self.roomAnnotationModel.predict(frame, conf=self.roomAnnotConf, save=False)
+        for result in results:
+            per_frame = []
+            detected_classes = set()
+            boxes = result.boxes
+            for box in boxes:
+                b = box.xyxy[0]
+                c = box.cls
+                class_name = self.roomAnnotationModel.names[int(c)]
                 
+                if class_name not in detected_classes:
+                    per_frame.append({'box': b.tolist(), 'class': class_name})
+                    detected_classes.add(class_name)
+                    
+            room_detections.append(per_frame)
+    
+    return room_detections
+
+
 
