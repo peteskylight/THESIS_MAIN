@@ -13,5 +13,5 @@ def read_pickle_file(file_path):
         print(f"An error occurred: {e}")
 
 # Example usage
-file_path = os.path.abspath('RENOVATION/cache/inference_temp_results.pkl')
+file_path = os.path.abspath('RENOVATION/cache/student_detection_results.pkl')
 read_pickle_file(file_path)

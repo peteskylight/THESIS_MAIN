@@ -5,17 +5,22 @@ class VideoUtils:
     
     def __init__(self) -> None:
         pass
-    
-    def read_video(self, video_path):
+
+    def read_video(self, video_path, resize_frames):
         cap = cv2.VideoCapture(video_path)
         frames = []
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
-            frames.append(frame)
+            if resize_frames:
+                resized_frame = cv2.resize(frame, (640, 384))
+                frames.append(resized_frame)
+            else:
+                frames.append(frame)
         cap.release()
         return frames
+
 
     def save_video(self, output_video_frames, output_video_path, monitorFrames=False):
         fourcc = cv2.VideoWriter_fourcc(*'MJPG')

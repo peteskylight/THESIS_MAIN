@@ -31,9 +31,9 @@ def main():
     
     #====================CREATE INSTANCES
     student_tracker = StudentTracker(humanDetectionModel='yolov8n.pt',
-                                     humanDetectConf=0.5,
+                                     humanDetectConf=0.4,
                                      humanPoseModel='yolov8n-pose.pt',
-                                     humanPoseConf=0.5
+                                     humanPoseConf=0.4
                                      )
 
     roomAnnot_tracker = RoomTracker(roomAnnotationModel= getAbsPath(roomKeyDetectModel),
@@ -46,7 +46,8 @@ def main():
     input_video_path = "C:/Users/peter/Desktop/THESIS FILES/START/THESIS_MAIN/RESOURCES/VIDEOS/Test/1920/Center.mp4"
     #input_video_path="C:/Users/peter/Desktop/THESIS FILES/START/Left_Corner.mp4"
     
-    video_frames = video_utils.read_video(input_video_path)
+    video_frames = video_utils.read_video(video_path=input_video_path,
+                                          resize_frames= False)
     
     ##HEIGHT & WIDTH
     
@@ -55,10 +56,9 @@ def main():
     
     #====================Student Existence
     student_detections = student_tracker.detect_frames(frames=video_frames,
-                                                       read_from_stub=False,
+                                                       read_from_stub=None,
                                                        stub_path=student_detections_results
                                                        )
-    
     #POSE ESTIMATION
     
     student_pose_results = student_tracker.detect_keypoints(frames=video_frames,
@@ -68,12 +68,6 @@ def main():
     for frame, keypoints_dict, student_dict in zip(video_frames, student_pose_results, student_detections):
         frame_with_keypoints = drawing_utils.draw_keypoints(frame, keypoints_dict, student_dict)
         
-        # Display the frame with keypoints
-        cv2.imshow('Frame with Keypoints', frame_with_keypoints)
-        cv2.waitKey(10)
-
-    cv2.destroyAllWindows()
-    
     room_detections = roomAnnot_tracker.detectRoomKeypoints(frames=video_frames)
     
 
@@ -106,13 +100,13 @@ def main():
     
     #EXPORT ORIGINAL VIDEO
     video_utils.save_video(output_video_frames=output_video_frames,
-               output_video_path=getAbsPath("RENOVATION/output_videos/TESTORIG1.avi"),
+               output_video_path=getAbsPath("RENOVATION/output_videos/TESTORIG5.avi"),
                monitorFrames=False #Change me when everything is fuckedup
                )
     
     #EXPORT WHITE FRAMES
     video_utils.save_video(output_video_frames=output_white_frames,
-               output_video_path=getAbsPath("RENOVATION/output_videos/TESTWHITE1.avi"),
+               output_video_path=getAbsPath("RENOVATION/output_videos/TESTWHITE5.avi"),
                monitorFrames=False #Change me when everything is fuckedup
                )
 if __name__ == "__main__":

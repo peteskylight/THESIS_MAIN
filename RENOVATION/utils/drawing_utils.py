@@ -43,7 +43,9 @@ class DrawingUtils:
         
         return output_video_frames1 
     
-    import cv2
+
+
+
 
     def draw_keypoints(self, frame, keypoints_dict, student_dict):
         for track_id in keypoints_dict:
@@ -52,11 +54,17 @@ class DrawingUtils:
                 bbox = student_dict[track_id]
                 bbox_x, bbox_y, bbox_w, bbox_h = bbox
 
+                # Crop the frame using the bounding box coordinates
+                cropped_frame = frame[int(bbox_y):int(bbox_h), int(bbox_x):int(bbox_w)]
+
                 for keypoint in keypoints:
-                    x = int(bbox_x + keypoint[0] * bbox_w)
-                    y = int(bbox_y + keypoint[1] * bbox_h)
-                    cv2.circle(frame, (x, y), radius=5, color=(0, 255, 0), thickness=-1)
-        
+                    x = int(keypoint[0] * cropped_frame.shape[1])
+                    y = int(keypoint[1] * cropped_frame.shape[0])
+                    cv2.circle(cropped_frame, (x, y), radius=5, color=(0, 255, 0), thickness=-1)
+                
+                # Place the cropped frame back into the original frame
+                frame[int(bbox_y):int(bbox_h), int(bbox_x):int(bbox_w)] = cropped_frame
+
         return frame
 
 

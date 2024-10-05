@@ -32,22 +32,11 @@ class StudentTracker:
                     print(f"Error creating directory {directory}: {e}")
                     return None
                 
-        if stub_path is not None:
-            try:
-                with open(stub_path, 'wb') as f:
-                    pickle.dump((student_detections, pose_detections), f)
-                print(f"Data saved to {stub_path}.")
-            except OSError as e:
-                print(f"Error saving to stub file: {e}")
-                return None
-            except Exception as e:
-                print(f"An error occurred while saving to stub file: {e}")
-                return None
-            
+
         if read_from_stub and stub_path is not None:
             try:
                 with open(stub_path, 'rb') as f:
-                    student_detections, pose_detections = pickle.load(f)
+                    student_detections = pickle.load(f)
                 print("Loaded data from stub file.")
                 return student_detections
             except FileNotFoundError as e:
@@ -63,7 +52,7 @@ class StudentTracker:
 
             # cv2.imshow("TEST", frame)
             # cv2.waitKey(10)
-        
+            
         if stub_path is not None:
             try:
                 with open(stub_path, 'wb') as f:
@@ -75,7 +64,7 @@ class StudentTracker:
             except Exception as e:
                 print(f"An error occurred while saving to stub file: {e}")
                 return None
-
+            
         return student_detections
 
     
@@ -145,6 +134,7 @@ class StudentTracker:
                     # Perform pose detection on the cropped image
                     _, poseResults = self.detectHumanPose(cropped_image, self.humanPoseConf)
                     keypoints_normalized = np.array(poseResults[0].keypoints.xyn.cpu().numpy()[0])
+                    
                     keypoints_dict[track_id] = keypoints_normalized
                 except Exception as e:
                     print(f"Error detecting keypoints for track ID {track_id}: {e}")
